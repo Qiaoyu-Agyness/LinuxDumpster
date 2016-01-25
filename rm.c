@@ -50,204 +50,182 @@ int getExtention(char *name){
 
 int rmFile(char *name, char *dumpster, int rflag){
 
-  char *filename = malloc(MAXSTR*sizeof(char));
-  char *dname, *bname;//for directory name and base name
+    char *filename = malloc(MAXSTR*sizeof(char));
+    char *dest = malloc(MAXSTR*sizeof(char));
+    char *dname, *bname;//for directory name and base name
 
-  printf("processing 1\n");
-  strcpy(filename,name);
-  printf("processing 10\n");
-  dname = dirname(name);
-  bname = basename(name);
+    printf("processing 1\n");
+    strcpy(filename,name);
+    printf("%s\n", );("processing 10\n");
+    dname = dirname(name);
+    bname = basename(name);
 
-  printf("the direcotry name is %s\n",dname);
-  printf("the file name is %s\n",bname);
-  
-  int result;
-  result = access(filename,R_OK);
+    printf("the direcotry name is %s\n",dname);
+    printf("the file name is %s\n",bname);
+    strcpy(dest,dumpster);
+    strcat(dest,"/");
+    strcat(dest,bname);
+    printf("Destination name: %s\n",dest);
+    
+    int result;
+    result = access(filename,R_OK);
 
-  printf("the result of accesss is %d\n",result);
+    printf("the result of accesss is %d\n",result);
 
-  //if file don't exist
-  //Report Error
-  if(result != 0){
-    int errsv = errno;
-    perror("ERROR:");
-
-    if(errsv == ENOENT){
-      printf("processing 6\n");
-      exit(-1);//ERRER
-    }
-  }
-
-  int count;
-  //get the extention
-  printf("processing 2\n");
-  char *dest = malloc(MAXSTR*sizeof(char));
-  strcpy(dest,dumpster);
-  strcat(dest,"/");
-  strcat(dest,bname);
-  printf("Destination name: %s\n",dest);
-  count = getExtention(dest);
-  if(count == -1){
-    //ERROR
-    exit(-1);
-  }
-  
-  printf("extention number %d",count);
-  if(count != 0){
-    char* myChar = malloc(10*sizeof(char));
-    sprintf(myChar, "%d", count);
-    strcat(dest,".");
-    strcat(dest,myChar);
-  }
-
-  printf("the final destination of the file is %s\n",dest);
-
-  
-
-  printf("processing 4\n");
-  int ret;
-  struct stat buf;
-  ret = stat(filename, &buf);
-
-  //fail to get stat
-  if (ret != 0) {
-    perror("Failed:");
-    exit(ret);
-  }
-
-  printf("processing 5\n");
-  //find out the dumpster partition
-  int ret_d;
-  struct stat buf_d;
-  ret = stat(dumpster,&buf_d);
-
-
-  //file is a directory
-  if(S_ISDIR(buf.st_mode)){
-
-    printf("processing 7\n");
-    if(rflag == 0){
-      perror("ERROR: deleting a not recurse directory");
-      exit(-1);
-    }
-
-    mode_t temp = buf.st_mode;
-    mkdir(dest,temp);    
-
-    //open the direcotry to loop through
-    DIR *dp = opendir(filename);
-    if (dp == NULL) {
-      perror("open()");
-      exit(-1);     /* error */
-    }
-
-    /* Loop, reading each file and printing until done all. */
-    struct dirent *d = readdir(dp);
-    while (d) {
-        //make sure no . or .. are counted
-        if (strcmp(d->d_name, ".") != 0 && strcmp(d->d_name, "..") != 0){
-        //new file to be dumped
-          printf("the current file is %s",d->d_name);
-        char *newfilename = malloc(MAXSTR*sizeof(char));
-        strcpy(newfilename,filename);
-        strcat(newfilename,"/");
-        strcat(newfilename,d->d_name);
-
-        //dump the file 
-        rmFile(newfilename,dest,1);
-      }
-
-      //printf("%s\n", d->d_name);
-      d = readdir(dp);
-    }
-
-    //set the access
-    /*
-    struct stat buf_de;
-    stat(dest,&buf_de);
-
-    buf_de.st_mode = buf.st_mode;
-    */
-
-    /* Done, so close directory. */
-    if (closedir(dp) != 0)  {
-      perror("closedir()");
-      return 2;
-    }
-
-    int status;
-    status = rmdir(filename);
-    if(status){
+    //if file don't exist
+    //Report Error
+    if(result != 0){
+      int errsv = errno;
       perror("ERROR:");
+
+      if(errsv == ENOENT){
+        printf("processing 6\n");
+        exit(-1);//ERRER
+      }
     }
-    return 0;     /* success of the direcotry dump */
 
-  }
+    //get the extention
+    int count;
+    printf("processing 2\n");      
+    count = getExtention(dest);
+    if(count == -1){
+        //ERROR
+        exit(-1);
+    }
+    printf("extention number %d",count);
+    if(count != 0){
+      char* myChar = malloc(10*sizeof(char));
+      sprintf(myChar, "%d", count);
+      strcat(dest,".");
+      strcat(dest,myChar);
+    }
+
+    printf("the final destination of the file is %s\n",dest);
+
+    
+
+    printf("processing 4\n");
+    int ret;
+    struct stat buf;
+    ret = stat(filename, &buf);
+
+    //fail to get stat
+    if (ret != 0) {
+      perror("Failed:");
+      exit(ret);
+    }
+
+    printf("processing 5\n");
+    //find out the dumpster partition
+    int ret_d;
+    struct stat buf_d;
+    ret_d = stat(dumpster,&buf_d);
 
 
-  //it is a file not a dirctory
-  if(S_ISREG(buf.st_mode)){
-    //if they are not in the same directory
-    if(buf.st_dev != buf_d.st_dev){
-      printf("processing 8\n");
-      char ch;
-      FILE *source, *target;
+    //file is a directory
+    if(S_ISDIR(buf.st_mode)){
 
-      source = fopen(filename, "r");
-
-      if( source == NULL ){
-        //nothing to be opened
-        exit(EXIT_FAILURE);
+      printf("processing 7\n");
+      if(rflag == 0){
+        perror("ERROR: deleting a not recurse directory");
+        exit(-1);
       }
 
-      target = fopen(dest, "w");
+      mode_t temp = buf.st_mode;
+      mkdir(dest,temp);    
 
-      if( target == NULL ){
-        fclose(source);
-        exit(EXIT_FAILURE);
+      //open the direcotry to loop through
+      DIR *dp = opendir(filename);
+      if (dp == NULL) {
+        perror("open()");
+        exit(-1);     /* error */
       }
- 
-      while( ( ch = fgetc(source) ) != EOF )
-      fputc(ch, target);
- 
-      printf("File copied successfully.\n");
- 
-      fclose(source);
-      fclose(target);
-      //file alreadied copied
 
-      //set permission using chmod
-      //set permission
-      /*
-      struct stat buf_de;
-      stat(dest,&buf_de);
+      /* Loop, reading each file and printing until done all. */
+      struct dirent *d = readdir(dp);
+      while (d) {
+          //make sure no . or .. are counted
+          if (strcmp(d->d_name, ".") != 0 && strcmp(d->d_name, "..") != 0){
+            //new file to be dumped
+            printf("the current file is %s",d->d_name);
+            char *newfilename = malloc(MAXSTR*sizeof(char));
+            strcpy(newfilename,filename);
+            strcat(newfilename,"/");
+            strcat(newfilename,d->d_name);
 
-      buf_de.st_mode = buf.st_mode;
-      */
-      mode_t temp = buf.st_mode; 
-      chmod(dest,temp);
-      //set time changed
-      utime(dest,NULL);
+            //dump the file 
+            rmFile(newfilename,dest,1);
+          }
+        d = readdir(dp);
+      }
+
+      /* Done, so close directory. */
+      if (closedir(dp) != 0)  {
+        perror("closedir()");
+        return 2;
+      }
 
       int status;
-      status = unlink(filename);
+      status = rmdir(filename);
       if(status){
         perror("ERROR:");
       }
+      return 0;     /* success of the direcotry dump */
+
     }
 
 
-    //if file is on the same partition
-    else{
-      printf("processing 9\n");
-      rename(filename,dest);
-      printf("moved file %s to the dumpster %s\n",bname, dest);
+    //it is a file not a dirctory
+    if(S_ISREG(buf.st_mode)){
+      //if they are not in the same directory
+      if(buf.st_dev != buf_d.st_dev){
+        printf("processing 8\n");
+        char ch;
+        FILE *source, *target;
+
+        source = fopen(filename, "r");
+
+        if( source == NULL ){
+          //nothing to be opened
+          exit(EXIT_FAILURE);
+        }
+
+        target = fopen(dest, "w");
+
+        if( target == NULL ){
+          fclose(source);
+          exit(EXIT_FAILURE);
+        }
+   
+        while( ( ch = fgetc(source) ) != EOF )
+        fputc(ch, target);
+   
+        printf("File copied successfully.\n");
+   
+        fclose(source);
+        fclose(target);
+        
+        //set the access permissions
+        mode_t temp = buf.st_mode; 
+        chmod(dest,temp);
+        //set time changed
+        utime(dest,NULL);
+
+        int status;
+        status = unlink(filename);
+        if(status){
+          perror("ERROR:");
+        }
+      }
+
+      //if file is on the same partition
+      else{
+        printf("processing 9\n");
+        rename(filename,dest);
+        printf("moved file %s to the dumpster %s\n",bname, dest);
+      }
+      //unlink old file 
     }
-
-    //unlink old file 
-
-  }
     
   return -1;
 }
