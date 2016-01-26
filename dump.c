@@ -28,10 +28,12 @@ int dump(char *tobedumped){
 	//if cannot access the file
 	if(result != 0){
     	int errsv = errno;
+      printf("Process 1 \n");
     	perror("ERROR:");
-      	exit(-1);//ERRER
+      exit(-1);//ERRER
   	}
 
+    //printf("process 2\n");
 
   	//find the stats
   	int ret;
@@ -58,12 +60,13 @@ int dump(char *tobedumped){
     	struct dirent *d = readdir(dp);
     	while (d) {
         	//make sure no . or .. are counted
-        	if (strcmp (d->d_name, ".") || strcmp (d->d_name, "..")){
+        	if (strcmp(d->d_name, ".") != 0 && strcmp(d->d_name, "..") != 0){
         		//new file to be dumped
         		char *newfilename = malloc(MAXSTR*sizeof(char));
         		strcpy(newfilename,tobedumped);
         		strcat(newfilename,"/");
         		strcat(newfilename,d->d_name);
+            printf("The new file name is %s\n",newfilename);
         		//restore the file 
         		dump(newfilename);
       		}
@@ -102,17 +105,22 @@ int dump(char *tobedumped){
 
 int main(int argc, char* argv[]){
 
-	char* dumpster;
-	int hflag = 0;
+	char* dumpster = "";
+  int hflag = 0;
 	extern int optind, opterr;
 	char *file[] = {""};
+  const char *dumpname = "DUMPSTER";
+
 
 	dumpster = getenv("DUMPSTER");
+  printf("Dumpster name is %s\n",dumpster);
 
-	if(!dumpster){
+
+	if(dumpster == NULL){
 		perror("NO MATCHING FOR ENVIRONMENT VARIABLE DUMPSTER, PLEASE SET UP\n");
 		exit(-1);
 	}
+
 
 	printf("processing the argument: %d\n",optind);
 
